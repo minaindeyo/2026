@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>병점남부 억크닉 🫧</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #FFF6F0; --text: #4A3728; --subtext: #8B6A5A; }
+    body { background: var(--bg); font-family: 'Nanum Gothic', sans-serif; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    .hero { text-align: center; padding: 48px 20px 32px; background: linear-gradient(160deg, #FFE0EC 0%, #FFF0E8 50%, #E8F4FF 100%); position: relative; overflow: hidden; }
+    .hero::before { content: '🫧'; font-size: 110px; position: absolute; top: -10px; right: -10px; opacity: 0.15; }
+    .hero-title { font-family: 'Jua', sans-serif; font-size: clamp(26px, 6vw, 44px); color: #C2678A; margin-bottom: 6px; }
+    .hero-sub { font-size: 14px; color: var(--subtext); }
+    .slider-section { padding: 28px 0 20px; position: relative; }
+    .slider-meta { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 20px 16px; }
+    .counter { font-family: 'Jua', sans-serif; font-size: 16px; color: #C2678A; min-width: 52px; text-align: center; }
+    .dots { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #F0C8D4; transition: all 0.2s; cursor: pointer; }
+    .dot.active { background: #C2678A; width: 22px; border-radius: 4px; }
+    .slider-track-wrap { overflow: hidden; padding: 8px 0 24px; }
+    .slider-track { display: flex; transition: transform 0.38s cubic-bezier(.4,0,.2,1); will-change: transform; padding-left: calc((100vw - (100vw - 64px)) / 2); }
+    .card { flex: 0 0 calc(100vw - 64px); max-width: 420px; margin: 0 12px; background: #fff; border-radius: 28px; padding: 28px 24px 24px; box-shadow: 0 6px 28px rgba(180,130,110,0.13); position: relative; overflow: hidden; }
+    .card-stripe { position: absolute; top: 0; left: 0; right: 0; height: 7px; border-radius: 28px 28px 0 0; }
+    .card-header { display: flex; align-items: center; gap: 14px; margin-top: 6px; margin-bottom: 18px; }
+    .avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .name { font-family: 'Jua', sans-serif; font-size: 22px; color: var(--text); line-height: 1.2; }
+    .badge { display: inline-block; font-size: 11px; background: #FFDDE8; color: #C2678A; border-radius: 999px; padding: 2px 9px; margin-top: 4px; font-weight: 700; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; color: var(--subtext); margin-bottom: 7px; margin-top: 16px; }
+    .songs { display: flex; flex-direction: column; gap: 5px; }
+    .song { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6B5048; background: #FFF6F0; border-radius: 10px; padding: 7px 10px; line-height: 1.4; }
+    .tmis { display: flex; flex-direction: column; gap: 8px; }
+    .tmi-item { font-size: 13.5px; color: var(--text); line-height: 1.6; padding-left: 20px; position: relative; }
+    .tmi-item::before { content: '✨'; position: absolute; left: 0; font-size: 12px; top: 1px; }
+    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #F0C8D4; color: #C2678A; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(180,130,110,0.15); z-index: 10; transition: background 0.15s, border-color 0.15s; }
+    .nav-btn:hover { background: #FFDDE8; border-color: #C2678A; }
+    .nav-btn.prev { left: 8px; }
+    .nav-btn.next { right: 8px; }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .swipe-hint { text-align: center; font-size: 12px; color: #C0A099; padding-bottom: 20px; }
+    @media (min-width: 520px) { .card { flex: 0 0 420px; } .slider-track { padding-left: calc((100vw - 420px) / 2); } }
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-title">병점남부 억크닉 🫧</div>
+  <div class="hero-sub">인물탐구 카드</div>
+</div>
+<div class="slider-section">
+  <button class="nav-btn prev" id="prevBtn" onclick="slide(-1)">‹</button>
+  <button class="nav-btn next" id="nextBtn" onclick="slide(1)">›</button>
+  <div class="slider-meta">
+    <div class="counter" id="counter">1 / 17</div>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div class="slider-track-wrap">
+    <div class="slider-track" id="track"></div>
+  </div>
+  <div class="swipe-hint">← 스와이프하거나 화살표로 넘기세요 →</div>
+</div>
+<script>
+const COLORS = ['#FFCDD9','#D8CAFF','#B8F0E6','#FFE8A3','#B8DEFF','#FFB7A3'];
+const members = [
+  { name:"나미소", emoji:"🌟", badge:"솔로몬상 · TMI상", songs:["LIFE IS COOL - SweetBox","Officially Missing You - 긱스"], tmis:["아침마다 물속에서 시속 4km로 질주하는 여자야","사실 양띠야","요즘 독학으로 기타 연습하고 있어"] },
+  { name:"나미혜", emoji:"🎵", songs:["청춘만화 - 이무진","I Don't Think That I Like Her - Charlie Puth"], tmis:["최근 임재범 콘서트에 다녀왔다 (은퇴 콘서트였는데 나에겐 첫 콘서트..)","좌우 시력 차이가 꽤 심함 (좌: 0.2, 우: 1.0 아마도?!)","학창 시절 별명이 똥쟁이였다"] },
+  { name:"박대웅", emoji:"🐻", songs:["사건의 지평선 - 윤하","타임캡슐 - 다비치"], tmis:["학창 시절 별명 큰 곰, 대웅제약, 거인","스트레스 받을 때 아무 생각 없이 자기, 산책, 발라드 음악 듣기","좋아하는 과목 체육, 싫어하는 과목 수학"] },
+  { name:"박미나", emoji:"🦊", songs:["여우야 - 더 클래식","Love Never Felt So Good - Michael Jackson"], tmis:["탈모약 바르고 있음","야채곱창 좋아함","베개 5개 씀"] },
+  { name:"박미래", emoji:"🌸", songs:["It's Me - ILLIT","갑자기 - I.O.I"], tmis:["아이돌 노래 자주 들음","집에서는 대체로 침대에 누워 있음","부탁 잘 거절 못하는 편"] },
+  { name:"박장한", emoji:"🐟", songs:["The Wedding Song - Kenny G","고민 - 개리"], tmis:["무인도에 가져갈 것은 베개 — 만지고 자야 하기 때문에","좋아하는 음식은 회 — 소화가 잘 됨","어릴 때 모델 활동, TV 전기장판 광고에 나왔어요"] },
+  { name:"박진", emoji:"🥟", songs:["우산 - 에픽하이 (Feat. 윤하)","Little Star - Standing Egg"], tmis:["좋아하는 음식 김밥 ♡ 신선채소가 듬뿍 들어간 걸 좋아해요","별명은 찐빵 — 찐빵처럼 똥그랗기도 하고 이름도 비슷","주목받을 때 넘 부끄러워요"] },
+  { name:"서지우", emoji:"🎤", badge:"베드로상", songs:["1:05 - 검정치마","Vancouver 2 - BIG Naughty"], tmis:["블라인드라서 빛이 새어 나와 요즘 잠을 깊게 못 자고 있다","노래를 좋아해서 보컬학원을 다니고 있다","자기 전에 립밤을 바른다"] },
+  { name:"여나정", emoji:"🌿", songs:["Full of the Sun - 딘딘","소문의 낙원 - AKMU"], tmis:["초콜릿과 사탕을 싫어합니다","보기보다 부지런합니다","자장가로 최유리의 노래를 듣습니다"] },
+  { name:"유여경", emoji:"🎡", songs:["R.P.G. - W&Whale","Raining In Amsterdam - 이날치"], tmis:["롯데월드 알바 중 할로윈 좀비 분장 직원들 보고 기절할 뻔해서 그만뒀어요","좋아하는 음식 떡볶이 — 단, 본인과 어머니가 만든 건 제외","도전 골든벨 시청자 편 출연, 37번에서 탈락했지만 녹화장에서 같은 회중 가족 만남"] },
+  { name:"유준수", emoji:"🍎", songs:["Lady - 요네즈 켄시","My Love - Westlife"], tmis:["좋아하는 그룹 요아소비 — 소설을 노래로 만드는 게 특징","아침에 주로 사과 먹어요 — 달달하고 씹히는 맛","고등학교 때 제일 싫어했던 과목 미적분"] },
+  { name:"이민하", emoji:"🦟", badge:"늙크크상", songs:["Lucky - Jason Mraz (Feat. Colbie Caillat)","A Whole New World - Mena Massoud, Naomi Scott"], tmis:["잘하는 것: 새벽에 모기 소리만으로 30초 이내 찾아냄","못하는 것: 뚜껑 방향 잘 못 맞춤","낙원 직업: 항공기 제조 — 비행기 안에 잘 공간, 식당, 라운지, 동물 공간 만드는 게 목표"] },
+  { name:"이슬", emoji:"🌊", badge:"영크크상 · TMI상", songs:["기다리다 - 윤하","아로하 - COOL"], tmis:["스누피 그냥 좋아함","최근 여행지 강릉, 또 가고 싶음","작년 여름이 너무 힘들었어서 이번 여름도 걱정됨.. 방콕 예정이니 날 찾지 마세요 ㅎㅎ"] },
+  { name:"이영재", emoji:"🎸", songs:["선인장 - 에피톤 프로젝트 (Feat. 심규선)","사랑의 숲에서 길을 잃다 - 제드 (Feat. 임창정)"], tmis:["좋아하는 컬러 네이비 그레이 — 코디하기 가장 무난한 컬러","좋은 점은 진솔함 — 침례받고 나서 거짓말을 못함 ㅠ","애증하는 물건 기타 — 너무 치고 싶지만 기타줄 만지는 소름을 못 이겨냄 ㅠ"] },
+  { name:"장소연", emoji:"🌺", songs:[], tmis:["배꼽이 다 안 들어갔다","식탐이 많다","취미는 누워있기"] },
+  { name:"정준", emoji:"💪", badge:"바울상", songs:["Feel The Same - fcj w/ chevy","봄눈 - 10CM"], tmis:["스트레스 받을 때 헬스 — 근육 집중하면 다른 생각할 틈이 없어서 끝나면 자연스럽게 풀림","요즘 자주 듣는 음악 Bach Cello Suite No. 1 — 초등학생 때부터 좋아했던 음악","무인도에 가져갈 것: 태양광 위성 인터넷 컴퓨터 (방수 필수) — JW.ORG부터 구조 요청까지 가능"] },
+  { name:"차수민", emoji:"📒", badge:"TMI상", songs:["Number One Rockstar - DAYOUNG","Lemonade - aespa"], tmis:["눈썹에 작은 흉터 — 어릴 때 놀이터에서 찢어져 몇 바늘, 아직도 눈썹 안 나는 곳 있음!","꿈노트 — 재밌는 꿈 꾸면 일어나자마자 기록하고 사진 붙여놓음","스트레스 받을 때 엄청 크게 노래 들으면서 침대에 누워 해소"] }
+];
+let current = 0;
+const total = members.length;
+function buildCard(m, i) {
+  const c = COLORS[i % COLORS.length];
+  const songHTML = m.songs.length ? `<div class="section-label">🎶 플레이리스트</div><div class="songs">${m.songs.map(s=>`<div class="song">🎵 ${s}</div>`).join('')}</div>` : '';
+  const tmiHTML = `<div class="section-label">✨ TMI</div><div class="tmis">${m.tmis.map(t=>`<div class="tmi-item">${t}</div>`).join('')}</div>`;
+  const badgeHTML = m.badge ? `<div><span class="badge">${m.badge}</span></div>` : '';
+  return `<div class="card"><div class="card-stripe" style="background:${c}"></div><div class="card-header"><div class="avatar" style="background:${c}">${m.emoji}</div><div><div class="name">${m.name}</div>${badgeHTML}</div></div>${songHTML}${tmiHTML}</div>`;
+}
+function init() {
+  document.getElementById('track').innerHTML = members.map((m,i) => buildCard(m,i)).join('');
+  document.getElementById('dots').innerHTML = members.map((_,i) => `<div class="dot${i===0?' active':''}" onclick="goTo(${i})"></div>`).join('');
+  updateUI();
+}
+function updateUI() {
+  const track = document.getElementById('track');
+  const cardW = track.children[0] ? track.children[0].offsetWidth + 24 : 300;
+  track.style.transform = `translateX(-${current * cardW}px)`;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i === current));
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total - 1;
+}
+function slide(dir) { current = Math.max(0, Math.min(total-1, current + dir)); updateUI(); }
+function goTo(i) { current = i; updateUI(); }
+let touchStartX = 0;
+document.getElementById('track').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.getElementById('track').addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - touchStartX; if (Math.abs(dx) > 40) slide(dx < 0 ? 1 : -1); });
+document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') slide(-1); if (e.key === 'ArrowRight') slide(1); });
+window.addEventListener('resize', updateUI);
+init();
+</script>
+</body>
+</html>
